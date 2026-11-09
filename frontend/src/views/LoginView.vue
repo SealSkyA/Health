@@ -81,7 +81,8 @@ function createGame(cv, onPhase) {
 
   const resize = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    W = innerWidth; H = innerHeight
+    // canvas 仅铺满视口左侧 2/3（PC），棋盘与对弈区只在此区域内绘制
+    W = cv.clientWidth; H = cv.clientHeight
     cv.width = W * dpr; cv.height = H * dpr
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     // 整屏棋盘：格距适中铺满背景；对弈区为中间 15 路（PC 偏左让出右侧面板，移动端铺满居中）
@@ -116,6 +117,12 @@ function createGame(cv, onPhase) {
     }
     return s
   }
+  // 落子 (x,y) 颜色 c 后，四方向最大连子数
+  function maxConnect(x, y, c) {
+    let m = 0
+    for (const [dx, dy] of dirs) m = Math.max(m, lineLen(x, y, dx, dy, c))
+    return m
+  }
   function choose() {
     const center = Math.floor(N / 2)
     let occupied = 0
@@ -132,6 +139,8 @@ function createGame(cv, onPhase) {
         if (ii >= 0 && ii < N && jj >= 0 && jj < N && bd[ii][jj]) near = true
       }
       if (!near) continue
+      // 平局规则：任何一方都禁止连成 4 子及以上（五连必先有四连）
+      if (maxConnect(i, j, turn) >= 4) continue
       const atk = scorePos(i, j, turn)
       const def = scorePos(i, j, opp)
       if (atk >= weight[3] * 100) return [i, j]
@@ -140,7 +149,7 @@ function createGame(cv, onPhase) {
       s += (Math.random() - 0.5) * 0.06 * s
       if (s > bs) { bs = s; bx = i; by = j }
     }
-    return (bx < 0) ? [center, center] : [bx, by]
+    return (bx < 0) ? null : [bx, by]   // 无合法点 = 满盘和棋
   }
 
   function checkWin(x, y) {
@@ -169,14 +178,22 @@ function createGame(cv, onPhase) {
       turn = -turn
       onPhase(turn === 1 ? '黑方行棋' : '白方行棋')
       if (stepT) clearTimeout(stepT)
-      stepT = setTimeout(() => { const [cx, cy] = choose(); cursor = { x: px(cx), y: py(cy) }; place(cx, cy) }, 1080 + Math.random() * 700)
+      stepT = setTimeout(() => {
+        const mv = choose()
+        if (!mv) { onPhase('和棋 · 重新对弈'); stepT = setTimeout(restart, 3000); return }
+        const [a, b] = mv
+        cursor = { x: px(a), y: py(b) }
+        place(a, b)
+      }, 1080 + Math.random() * 700)
     }
   }
   function restart() {
     bd = Array.from({ length: N }, () => Array(N).fill(0))
     stones = []; winLine = null; over = false; turn = 1
     onPhase('黑方行棋')
-    const [cx, cy] = choose()
+    const mv = choose()
+    if (!mv) { stepT = setTimeout(restart, 800); return }
+    const [cx, cy] = mv
     cursor = { x: px(cx), y: py(cy) }
     stepT = setTimeout(() => place(cx, cy), 1000)
   }
@@ -281,7 +298,8 @@ async function doLogin() {
   overflow: hidden;
   background: var(--bg);
 }
-.login-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.login-bg { position: absolute; left: 0; top: 0; width: 66.6667%; height: 100%;
+  z-index: 0; pointer-events: none; }
 .quote { position: absolute; left: 50%; transform: translateX(-50%); z-index: 1; margin: 0;
   font-size: 13px; letter-spacing: 4px; color: var(--sh); white-space: nowrap; user-select: none; }
 .quote-pc { bottom: 4.5%; }
@@ -325,6 +343,7 @@ html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .84); border
 
 @media (max-width: 899px) {
   .login-page { justify-content: center; align-items: flex-end; padding: 18px 16px 22px; }
+  .login-bg { width: 100%; }
   .quote-pc { display: none; }
   .quote-m { display: block; position: static; transform: none;
     text-align: center; font-size: 12px; letter-spacing: 3px; margin-bottom: 14px; }
