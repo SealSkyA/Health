@@ -70,6 +70,7 @@ function createGame(cv, onPhase) {
   let bd = Array.from({ length: N }, () => Array(N).fill(0))
   let W = 0, H = 0, g = 0, offX = 0, offY = 0
   let stones = [], cursor = null, winLine = null, over = false
+  let bgCv = null
   let acc = '90,146,229', raf = 0, stepT = 0, lastTs = 0
   let turn = 1 // 1 黑先
 
@@ -92,6 +93,7 @@ function createGame(cv, onPhase) {
     // PC：对弈区在左 2/3 棋盘区内水平居中；移动端：全屏棋盘居中
     offX = Math.max(0, Math.floor((W - gw) / 2 / g) * g)
     offY = Math.max(0, Math.floor((H - gw) / 2 * 0.86 / g) * g)
+    bgCv = null   // 静态层（纹理/网格）失效，下一帧重建
   }
   resize()
   window.addEventListener('resize', resize)
@@ -198,26 +200,65 @@ function createGame(cv, onPhase) {
   }
   restart()
 
+  // —— 静态层离屏缓存：棋盘格纹理 + 网格 + 星位 + 3D 立体边框（resize 时重建） ——
+  function renderBg() {
+    bgCv = document.createElement('canvas')
+    bgCv.width = cv.width; bgCv.height = cv.height
+    const b = bgCv.getContext('2d')
+    b.setTransform(Math.min(window.devicePixelRatio || 1, 2), 0, 0, Math.min(window.devicePixelRatio || 1, 2), 0, 0)
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const cols = Math.ceil(W / g) + 1, rows = Math.ceil(H / g) + 1
+    // 棋盘格：相邻格相间微差（同色系），纵向渐变模拟 3D 光照（上亮下暗）
+    for (let j = 0; j < rows; j++) {
+      for (let i = 0; i < cols; i++) {
+        const x = i * g, y = j * g
+        const alt = ((i + j) & 1) === 0
+        const depth = Math.min(1, y / H)
+        if (dark) {
+          b.fillStyle = alt
+            ? `rgba(255,255,255,${(0.045 - depth * 0.018).toFixed(3)})`
+            : `rgba(0,0,0,${(0.055 - depth * 0.018).toFixed(3)})`
+        } else {
+          b.fillStyle = alt
+            ? `rgba(255,255,255,${(0.05 - depth * 0.02).toFixed(3)})`
+            : `rgba(23,37,58,${(0.032 - depth * 0.014).toFixed(3)})`
+        }
+        b.fillRect(x, y, g + 0.5, g + 0.5)
+      }
+    }
+    // 网格线
+    b.strokeStyle = dark ? 'rgba(255,255,255,.07)' : 'rgba(23,37,58,.08)'
+    b.lineWidth = 1
+    b.beginPath()
+    for (let i = 0; i <= cols; i++) { const x = i * g; b.moveTo(x, 0); b.lineTo(x, H) }
+    for (let j = 0; j <= rows; j++) { const y = j * g; b.moveTo(0, y); b.lineTo(W, y) }
+    b.stroke()
+    // 3D 立体感：对弈区边缘 高光(左上)/阴影(右下) 双线，呈微微凸起的盘面
+    const gwv = 14 * g
+    const X0 = offX - 1, Y0 = offY - 1
+    const BW = gwv + 2, BH = gwv + 2
+    b.strokeStyle = dark ? 'rgba(255,255,255,.10)' : 'rgba(255,255,255,.6)'
+    b.lineWidth = 2
+    b.strokeRect(X0, Y0, BW, BH)
+    b.strokeStyle = dark ? 'rgba(0,0,0,.35)' : 'rgba(23,37,58,.14)'
+    b.lineWidth = 1.6
+    b.strokeRect(X0 + 2, Y0 + 2, BW - 0.5, BH - 0.5)
+    // 星位
+    b.fillStyle = dark ? 'rgba(255,255,255,.38)' : 'rgba(23,37,58,.35)'
+    for (const [sx, sy] of [[3, 3], [11, 3], [7, 7], [3, 11], [11, 11]]) {
+      b.beginPath(); b.arc(offX + sx * g, offY + sy * g, Math.max(2, g * 0.06), 0, Math.PI * 2); b.fill()
+    }
+  }
+
   function draw(ts) {
     raf = requestAnimationFrame(draw)
     const dt = Math.min(ts - (lastTs || ts), 50); lastTs = ts
     for (const s of stones) if (s.phase < 1) s.phase = Math.min(1, s.phase + dt / 320)
 
     ctx.clearRect(0, 0, W, H)
-    // ── 整屏棋盘网格：铺满整个背景 ──
-    const dark = document.documentElement.getAttribute('data-theme') === 'dark'
-    ctx.strokeStyle = dark ? 'rgba(255,255,255,.07)' : 'rgba(23,37,58,.08)'
-    ctx.lineWidth = 1
-    ctx.beginPath()
-    const cols = Math.ceil(W / g) + 1, rows = Math.ceil(H / g) + 1
-    for (let i = 0; i <= cols; i++) { const x = i * g; ctx.moveTo(x, 0); ctx.lineTo(x, H) }
-    for (let j = 0; j <= rows; j++) { const y = j * g; ctx.moveTo(0, y); ctx.lineTo(W, y) }
-    ctx.stroke()
-    // 对弈区（中央 15 路）内的星位
-    ctx.fillStyle = dark ? 'rgba(255,255,255,.38)' : 'rgba(23,37,58,.35)'
-    for (const [sx, sy] of [[3, 3], [11, 3], [7, 7], [3, 11], [11, 11]]) {
-      ctx.beginPath(); ctx.arc(offX + sx * g, offY + sy * g, Math.max(2, g * 0.06), 0, Math.PI * 2); ctx.fill()
-    }
+    if (!bgCv) renderBg()
+    ctx.drawImage(bgCv, 0, 0, W, H)
+    // ── 对弈动态层：行棋光标 / 胜线 / 棋子 ──
     // 行棋光标
     if (cursor && !over) {
       const ph = Math.sin(ts / 260) * 0.5 + 0.5
