@@ -40,6 +40,24 @@ function setTheme(v) { theme.value = v; localStorage.setItem('theme', v); tdrop.
 const tdrop = ref(false)
 const udrop = ref(false)
 
+// ── 主题色板：默认经典蓝 + 7 个品牌色（顶栏切换）──
+const accent = ref(localStorage.getItem('accent') || '')
+const accents = [
+  { id: '', name: '经典蓝（默认）', color: '#002FA7' },
+  { id: 'red', name: '蕉红', color: '#D4042D' },
+  { id: 'orange', name: '暖阳橙', color: '#DB7A0E' },
+  { id: 'blue', name: '车菊蓝', color: '#5A92E5' },
+  { id: 'green', name: '翠微', color: '#5E8034' },
+  { id: 'teal', name: '碧清', color: '#41B5C2' },
+  { id: 'pink', name: '梅洛粉', color: '#EB6D98' },
+  { id: 'purple', name: '皇家紫', color: '#722169' },
+]
+const applyAccent = () => {
+  if (accent.value) document.documentElement.setAttribute('data-accent', accent.value)
+  else document.documentElement.removeAttribute('data-accent')
+}
+function setAccent(v) { accent.value = v; localStorage.setItem('accent', v); tdrop.value = false; applyAccent() }
+
 // 当前登录用户：响应式共享状态（登录后无需刷新即可更新昵称/头像）
 loadUser()
 const displayName = () => userState.name || userState.username || '未登录'
@@ -72,6 +90,7 @@ function renderCrumb() {
 
 onMounted(() => {
   applyTheme()
+  applyAccent()
   // 未登录时不拉权限：否则会把空权限当成"已加载"，登录后菜单不刷新（需手动刷新页面）
   if (localStorage.getItem('token') && !permState.loaded) loadPerms()
   if (localStorage.getItem('token')) {
@@ -168,6 +187,14 @@ onMounted(() => {
             <button :class="{ on: theme === 'light' }" @click="setTheme('light')"><span class="t-dot"></span>亮色</button>
             <button :class="{ on: theme === 'dark' }" @click="setTheme('dark')"><span class="t-dot"></span>暗色</button>
             <button :class="{ on: theme === 'system' }" @click="setTheme('system')"><span class="t-dot"></span>跟随系统</button>
+            <div class="t-sep"></div>
+            <div class="t-lbl">主题色</div>
+            <div class="accent-row">
+              <button v-for="a in accents" :key="a.id || 'def'" class="a-sw" :class="{ on: accent === a.id }"
+                :style="{ background: a.color }" :title="a.name" @click="setAccent(a.id)">
+                <svg v-if="accent === a.id" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+              </button>
+            </div>
           </div>
         </div>
 
