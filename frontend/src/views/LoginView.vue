@@ -89,9 +89,8 @@ function createGame(cv, onPhase) {
     g = W <= 899 ? Math.max(22, Math.floor(W / 15)) : 46
     const gw = 14 * g
     // 偏移必须吸附到 g 的整数倍，棋子/星位才精确落在背景格线交叉点上
-    offX = W <= 899
-      ? Math.max(0, Math.floor((W - gw) / 2 / g) * g)
-      : Math.max(0, Math.floor((W * 0.60 - gw) / 2 / g) * g)
+    // PC：对弈区在左 2/3 棋盘区内水平居中；移动端：全屏棋盘居中
+    offX = Math.max(0, Math.floor((W - gw) / 2 / g) * g)
     offY = Math.max(0, Math.floor((H - gw) / 2 * 0.86 / g) * g)
   }
   resize()
@@ -302,7 +301,7 @@ async function doLogin() {
   z-index: 0; pointer-events: none; }
 .quote { position: absolute; left: 50%; transform: translateX(-50%); z-index: 1; margin: 0;
   font-size: 13px; letter-spacing: 4px; color: var(--sh); white-space: nowrap; user-select: none; }
-.quote-pc { bottom: 4.5%; }
+.quote-pc { left: 33.3333%; transform: translateX(-50%); bottom: 4.5%; }
 .quote-m { display: none; }
 
 /* PC：右侧 1/3 宽登录侧栏，上/下/右贴边无间隙 */
