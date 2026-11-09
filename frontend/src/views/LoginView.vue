@@ -68,7 +68,7 @@ function createGame(cv, onPhase) {
   const N = 15, ctx = cv.getContext('2d')
   const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]]
   let bd = Array.from({ length: N }, () => Array(N).fill(0))
-  let W = 0, H = 0, size = 0, g = 0, offX = 0, offY = 0, pad = 0
+  let W = 0, H = 0, g = 0, offX = 0, offY = 0
   let stones = [], cursor = null, winLine = null, over = false
   let acc = '90,146,229', raf = 0, stepT = 0, lastTs = 0
   let turn = 1 // 1 黑先
@@ -84,13 +84,11 @@ function createGame(cv, onPhase) {
     W = innerWidth; H = innerHeight
     cv.width = W * dpr; cv.height = H * dpr
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    size = Math.round(Math.min(W * 0.70, H * 0.60, 640))
-    g = (size - 0) / (N - 1)
-    pad = Math.max(8, size * 0.03)
-    g = (size - pad * 2) / (N - 1)
-    // PC：棋盘居中偏左，把右侧区域让给登录面板；移动端：水平居中
-    offX = W <= 899 ? (W - size) / 2 : Math.round((W - size) * 0.34)
-    offY = Math.round((H - size) / 2 * 0.82)  // 略偏上，底部留格言空间
+    // 整屏棋盘：格距适中铺满背景；对弈区为中间 15 路（PC 偏左让出右侧面板，移动端铺满居中）
+    g = W <= 899 ? Math.max(22, Math.floor(W / 15)) : 46
+    const gw = 14 * g
+    offX = W <= 899 ? (W - gw) / 2 : Math.round((W * 0.60 - gw) / 2)
+    offY = Math.round((H - gw) / 2 * 0.86)
   }
   resize()
   window.addEventListener('resize', resize)
@@ -151,8 +149,8 @@ function createGame(cv, onPhase) {
     return null
   }
 
-  const px = (x) => offX + pad + x * g
-  const py = (y) => offY + pad + y * g
+  const px = (x) => offX + x * g
+  const py = (y) => offY + y * g
 
   function place(x, y) {
     bd[x][y] = turn
@@ -187,34 +185,19 @@ function createGame(cv, onPhase) {
     for (const s of stones) if (s.phase < 1) s.phase = Math.min(1, s.phase + dt / 320)
 
     ctx.clearRect(0, 0, W, H)
-    // 盘面阴影
-    ctx.shadowColor = 'rgba(15,23,42,.35)'
-    ctx.shadowBlur = 46
-    ctx.fillStyle = '#25303C'
+    // ── 整屏棋盘网格：铺满整个背景 ──
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark'
+    ctx.strokeStyle = dark ? 'rgba(255,255,255,.13)' : 'rgba(23,37,58,.16)'
+    ctx.lineWidth = 1
     ctx.beginPath()
-    ctx.roundRect(offX, offY, size, size, size * 0.023)
-    ctx.fill()
-    ctx.shadowBlur = 0
-    // 盘面色泽
-    const gr = ctx.createRadialGradient(offX + size / 2, offY + size / 2, g * 2, offX + size / 2, offY + size / 2, size / 1.6)
-    gr.addColorStop(0, '#2C3744'); gr.addColorStop(1, '#222C38')
-    ctx.fillStyle = gr
-    ctx.beginPath()
-    ctx.roundRect(offX, offY, size, size, size * 0.023)
-    ctx.fill()
-    // 网格
-    ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1
-    ctx.beginPath()
-    for (let i = 0; i < N; i++) {
-      const p = pad + i * g
-      ctx.moveTo(offX + pad, offY + p); ctx.lineTo(offX + pad + (N - 1) * g, offY + p)
-      ctx.moveTo(offX + p, offY + pad); ctx.lineTo(offX + p, offY + pad + (N - 1) * g)
-    }
+    const cols = Math.ceil(W / g) + 1, rows = Math.ceil(H / g) + 1
+    for (let i = 0; i <= cols; i++) { const x = i * g; ctx.moveTo(x, 0); ctx.lineTo(x, H) }
+    for (let j = 0; j <= rows; j++) { const y = j * g; ctx.moveTo(0, y); ctx.lineTo(W, y) }
     ctx.stroke()
-    // 星位
-    ctx.fillStyle = 'rgba(255,255,255,.4)'
+    // 对弈区（中央 15 路）内的星位
+    ctx.fillStyle = dark ? 'rgba(255,255,255,.5)' : 'rgba(23,37,58,.5)'
     for (const [sx, sy] of [[3, 3], [11, 3], [7, 7], [3, 11], [11, 11]]) {
-      ctx.beginPath(); ctx.arc(offX + pad + sx * g, offY + pad + sy * g, 2.6, 0, Math.PI * 2); ctx.fill()
+      ctx.beginPath(); ctx.arc(offX + sx * g, offY + sy * g, Math.max(2, g * 0.06), 0, Math.PI * 2); ctx.fill()
     }
     // 行棋光标
     if (cursor && !over) {
