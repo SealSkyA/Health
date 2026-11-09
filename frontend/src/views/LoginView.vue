@@ -275,9 +275,9 @@ async function doLogin() {
   position: relative;
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-end;
-  padding: 40px;
+  padding: 0;
   overflow: hidden;
   background: var(--bg);
 }
@@ -287,19 +287,20 @@ async function doLogin() {
 .quote-pc { bottom: 4.5%; }
 .quote-m { display: none; }
 
+/* PC：右侧 1/3 宽登录侧栏，上/下/右贴边无间隙 */
 .login-panel {
   position: relative; z-index: 2;
-  width: 376px;
-  margin-right: clamp(0px, 7vw, 110px);
-  padding: 34px 34px 26px;
-  background: rgba(255, 255, 255, .80);
+  width: 33.3333%;
+  min-width: 340px;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 48px 52px;
+  background: rgba(255, 255, 255, .82);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, .7);
-  border-radius: 18px;
-  box-shadow: 0 24px 70px rgba(20, 35, 60, .28);
+  border-left: 1px solid rgba(23, 37, 58, .10);
+  box-shadow: -24px 0 70px rgba(20, 35, 60, .16);
 }
-html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .78); border-color: rgba(255, 255, 255, .10); }
+html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .84); border-left-color: rgba(255, 255, 255, .08); }
 .panel-head { display: flex; align-items: center; gap: 13px; margin-bottom: 22px; }
 .panel-head .mk {
   width: 46px; height: 46px; border-radius: 12px; flex: none;
@@ -327,6 +328,16 @@ html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .78); border
   .quote-pc { display: none; }
   .quote-m { display: block; position: static; transform: none;
     text-align: center; font-size: 12px; letter-spacing: 3px; margin-bottom: 14px; }
-  .login-panel { width: 100%; max-width: 380px; margin: 0; padding: 26px 26px 22px; }
+  .login-panel {
+    position: relative; z-index: 2; width: 100%; max-width: 380px; margin: 0;
+    min-width: 0; display: block; justify-content: initial;
+    padding: 26px 26px 22px;
+    background: rgba(255, 255, 255, .82);
+    border: 1px solid rgba(255, 255, 255, .7);
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(20, 35, 60, .28);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  }
+  html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .84); border-color: rgba(255, 255, 255, .10); }
 }
 </style>
