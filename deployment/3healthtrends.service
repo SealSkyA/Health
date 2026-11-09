@@ -1,0 +1,18 @@
+[Unit]
+Description=3HealthTrends FastAPI backend
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/3HealthTrends/backend
+EnvironmentFile=/home/3HealthTrends/backend/.env
+ExecStart=/home/3HealthTrends/backend/venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 35000
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

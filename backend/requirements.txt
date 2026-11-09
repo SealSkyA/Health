@@ -1,0 +1,11 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+sqlalchemy[asyncio]==2.0.35
+aiomysql==0.2.0
+aiosqlite==0.20.0
+pydantic>=2.11
+pydantic-settings==2.5.2
+PyJWT==2.9.0
+python-multipart==0.0.9
+# MinIO（对象存储，需要时启用）
+minio==7.2.8

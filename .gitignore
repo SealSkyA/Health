@@ -1,0 +1,32 @@
+# 环境与凭据（禁止入库）
+.env
+*.env
+!*.env.example
+
+# 运行产物
+*.db
+*.sqlite
+__pycache__/
+*.pyc
+venv/
+*.log
+_pid.txt
+uploads/
+dist/
+node_modules/
+
+# ── 运维 / 调试产物（禁止公开）──
+# deployment 下的运维脚本与数据文件：含服务器 root 密码，严禁上传公开仓库
+deployment/*.py
+deployment/*.json
+deployment/*.txt
+deployment/*.png
+# 根目录一级调试脚本 / 截图 / 临时文件
+/*_*.py
+/*.png
+nul
+# 零散调试产物
+backend/_syntax_check.py
+backend/_server.log
+frontend/build_out.txt
+frontend/_dev_web.log
