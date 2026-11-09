@@ -87,8 +87,11 @@ function createGame(cv, onPhase) {
     // 整屏棋盘：格距适中铺满背景；对弈区为中间 15 路（PC 偏左让出右侧面板，移动端铺满居中）
     g = W <= 899 ? Math.max(22, Math.floor(W / 15)) : 46
     const gw = 14 * g
-    offX = W <= 899 ? (W - gw) / 2 : Math.round((W * 0.60 - gw) / 2)
-    offY = Math.round((H - gw) / 2 * 0.86)
+    // 偏移必须吸附到 g 的整数倍，棋子/星位才精确落在背景格线交叉点上
+    offX = W <= 899
+      ? Math.max(0, Math.floor((W - gw) / 2 / g) * g)
+      : Math.max(0, Math.floor((W * 0.60 - gw) / 2 / g) * g)
+    offY = Math.max(0, Math.floor((H - gw) / 2 * 0.86 / g) * g)
   }
   resize()
   window.addEventListener('resize', resize)
@@ -187,7 +190,7 @@ function createGame(cv, onPhase) {
     ctx.clearRect(0, 0, W, H)
     // ── 整屏棋盘网格：铺满整个背景 ──
     const dark = document.documentElement.getAttribute('data-theme') === 'dark'
-    ctx.strokeStyle = dark ? 'rgba(255,255,255,.13)' : 'rgba(23,37,58,.16)'
+    ctx.strokeStyle = dark ? 'rgba(255,255,255,.07)' : 'rgba(23,37,58,.08)'
     ctx.lineWidth = 1
     ctx.beginPath()
     const cols = Math.ceil(W / g) + 1, rows = Math.ceil(H / g) + 1
@@ -195,7 +198,7 @@ function createGame(cv, onPhase) {
     for (let j = 0; j <= rows; j++) { const y = j * g; ctx.moveTo(0, y); ctx.lineTo(W, y) }
     ctx.stroke()
     // 对弈区（中央 15 路）内的星位
-    ctx.fillStyle = dark ? 'rgba(255,255,255,.5)' : 'rgba(23,37,58,.5)'
+    ctx.fillStyle = dark ? 'rgba(255,255,255,.38)' : 'rgba(23,37,58,.35)'
     for (const [sx, sy] of [[3, 3], [11, 3], [7, 7], [3, 11], [11, 11]]) {
       ctx.beginPath(); ctx.arc(offX + sx * g, offY + sy * g, Math.max(2, g * 0.06), 0, Math.PI * 2); ctx.fill()
     }
