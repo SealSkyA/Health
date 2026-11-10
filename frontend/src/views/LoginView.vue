@@ -354,12 +354,12 @@ html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .84); border
     position: relative; z-index: 2; width: 100%; max-width: 380px; margin: 0;
     min-width: 0; display: block; justify-content: initial;
     padding: 26px 26px 22px;
-    background: rgba(255, 255, 255, .60);
+    background: rgba(255, 255, 255, .40);
     border: 1px solid rgba(255, 255, 255, .7);
     border-radius: 18px;
     box-shadow: 0 24px 70px rgba(20, 35, 60, .28);
-    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   }
-  html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .62); border-color: rgba(255, 255, 255, .10); }
+  html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .44); border-color: rgba(255, 255, 255, .10); }
 }
 </style>
