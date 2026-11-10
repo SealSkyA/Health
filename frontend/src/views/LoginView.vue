@@ -292,7 +292,8 @@ async function doLogin() {
 <style scoped>
 .login-page {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -312,16 +313,18 @@ async function doLogin() {
   position: relative; z-index: 2;
   width: 400px;
   max-width: calc(100vw - 40px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
   display: flex; flex-direction: column; justify-content: center;
   padding: 42px 46px;
-  background: rgba(255, 255, 255, .78);
+  background: rgba(255, 255, 255, .58);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(23, 37, 58, .10);
   border-radius: 20px;
   box-shadow: 0 26px 80px rgba(20, 35, 60, .22);
 }
-html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .80); border-color: rgba(255, 255, 255, .08); }
+html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .60); border-color: rgba(255, 255, 255, .10); }
 .panel-head { display: flex; align-items: center; gap: 13px; margin-bottom: 22px; }
 .panel-head .mk {
   width: 46px; height: 46px; border-radius: 12px; flex: none;
@@ -354,12 +357,12 @@ html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .80); border
     position: relative; z-index: 2; width: 100%; max-width: 380px; margin: 0;
     min-width: 0; display: block; justify-content: initial;
     padding: 26px 26px 22px;
-    background: rgba(255, 255, 255, .82);
+    background: rgba(255, 255, 255, .60);
     border: 1px solid rgba(255, 255, 255, .7);
     border-radius: 18px;
     box-shadow: 0 24px 70px rgba(20, 35, 60, .28);
     -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
   }
-  html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .84); border-color: rgba(255, 255, 255, .10); }
+  html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .62); border-color: rgba(255, 255, 255, .10); }
 }
 </style>
