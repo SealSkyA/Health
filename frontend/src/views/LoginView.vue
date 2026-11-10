@@ -295,36 +295,33 @@ async function doLogin() {
   height: 100vh;
   height: 100dvh;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-end;
   padding: 0;
   overflow: hidden;
   background: var(--bg);
 }
-.login-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+.login-bg { position: absolute; left: 0; top: 0; width: 66.6667%; height: 100%;
   z-index: 0; pointer-events: none; }
 .quote { position: absolute; left: 50%; transform: translateX(-50%); z-index: 1; margin: 0;
   font-size: 13px; letter-spacing: 4px; color: var(--sh); white-space: nowrap; user-select: none; }
-.quote-pc { bottom: 4.5%; }
+.quote-pc { left: 33.3333%; transform: translateX(-50%); bottom: 4.5%; }
 .quote-m { display: none; }
 
-/* PC：登录卡片悬浮居中，半透明毛玻璃透出棋盘背景 */
+/* PC：右侧 1/3 宽登录侧栏，上/下/右贴边无间隙（保持原布局） */
 .login-panel {
   position: relative; z-index: 2;
-  width: 400px;
-  max-width: calc(100vw - 40px);
-  max-height: calc(100dvh - 48px);
-  overflow-y: auto;
+  width: 33.3333%;
+  min-width: 340px;
   display: flex; flex-direction: column; justify-content: center;
-  padding: 42px 46px;
-  background: rgba(255, 255, 255, .58);
+  padding: 48px 52px;
+  background: rgba(255, 255, 255, .82);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(23, 37, 58, .10);
-  border-radius: 20px;
-  box-shadow: 0 26px 80px rgba(20, 35, 60, .22);
+  border-left: 1px solid rgba(23, 37, 58, .10);
+  box-shadow: -24px 0 70px rgba(20, 35, 60, .16);
 }
-html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .60); border-color: rgba(255, 255, 255, .10); }
+html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .84); border-left-color: rgba(255, 255, 255, .08); }
 .panel-head { display: flex; align-items: center; gap: 13px; margin-bottom: 22px; }
 .panel-head .mk {
   width: 46px; height: 46px; border-radius: 12px; flex: none;
