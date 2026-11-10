@@ -632,6 +632,8 @@ html[data-theme="dark"]{--sb:rgba(140,151,172,.42);--sb-hover:rgba(166,176,194,.
 @media(max-width:560px){
   .img-viewer{width:100vw;height:100vh;height:100dvh;max-width:100vw;max-height:100vh;max-height:100dvh}
   .img-viewer img{max-width:100vw;max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px);border-radius:0}
+  /* 手机端切图靠左右滑动 + 底部缩略图，隐藏箭头按钮 */
+  .img-nav{display:none}
 }
 
 /* 移动端表单左右布局（置于文件最末尾，防止任何后部/局部规则覆盖）：
