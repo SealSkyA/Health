@@ -78,6 +78,9 @@ function createGame(cv, onPhase) {
     if (v) acc = v.replace(/\s+/g, '')
   }
   readAccent()
+  // 主题色 / 明暗主题切换时刷新 accent，棋盘线条实时跟随
+  const mo = new MutationObserver(readAccent)
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-accent', 'data-theme'] })
 
   const resize = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -206,7 +209,7 @@ function createGame(cv, onPhase) {
     ctx.clearRect(0, 0, W, H)
     // ── 整屏棋盘网格：铺满整个背景 ──
     const dark = document.documentElement.getAttribute('data-theme') === 'dark'
-    ctx.strokeStyle = dark ? 'rgba(255,255,255,.07)' : 'rgba(23,37,58,.08)'
+    ctx.strokeStyle = 'rgba(' + acc + ',' + (dark ? '.2' : '.13') + ')'
     ctx.lineWidth = 1
     ctx.beginPath()
     const cols = Math.ceil(W / g) + 1, rows = Math.ceil(H / g) + 1
@@ -214,7 +217,7 @@ function createGame(cv, onPhase) {
     for (let j = 0; j <= rows; j++) { const y = j * g; ctx.moveTo(0, y); ctx.lineTo(W, y) }
     ctx.stroke()
     // 对弈区（中央 15 路）内的星位
-    ctx.fillStyle = dark ? 'rgba(255,255,255,.38)' : 'rgba(23,37,58,.35)'
+    ctx.fillStyle = 'rgba(' + acc + ',' + (dark ? '.38' : '.30') + ')'
     for (const [sx, sy] of [[3, 3], [11, 3], [7, 7], [3, 11], [11, 11]]) {
       ctx.beginPath(); ctx.arc(offX + sx * g, offY + sy * g, Math.max(2, g * 0.06), 0, Math.PI * 2); ctx.fill()
     }
@@ -265,7 +268,7 @@ function createGame(cv, onPhase) {
   }
   raf = requestAnimationFrame(draw)
 
-  return { stop() { cancelAnimationFrame(raf); if (stepT) clearTimeout(stepT); window.removeEventListener('resize', resize) } }
+  return { stop() { cancelAnimationFrame(raf); if (stepT) clearTimeout(stepT); mo.disconnect(); window.removeEventListener('resize', resize) } }
 }
 
 async function doLogin() {

@@ -586,6 +586,14 @@ html[data-theme="dark"]{--sb:rgba(140,151,172,.42);--sb-hover:rgba(166,176,194,.
 .view-cols{display:flex;gap:20px;align-items:stretch}
 .view-cols .view-left{flex:1;min-width:0}
 .view-cols .view-side{width:400px;flex-shrink:0;border-left:1px solid var(--line);padding-left:20px;max-height:60vh;overflow-y:auto}
+/* 查看报告弹窗：主 Tab（检验结果 / 用药记录 / 关联文件） */
+.view-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:2px 0 14px}
+.vtab{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;
+  padding:8px 18px;font-size:13.5px;color:var(--mut);cursor:pointer;font-weight:600;border-radius:0}
+.vtab:hover{color:var(--fg)}
+.vtab.on{color:var(--acc);border-bottom-color:var(--acc)}
+.view-meds{max-height:60vh;overflow-y:auto;padding-right:4px}
+.view-files{max-height:60vh;overflow-y:auto}
 .vs-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .rx-card{border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-bottom:14px;background:var(--card)}
 .rx-card:last-child{margin-bottom:0}

@@ -310,6 +310,8 @@ function applyOcrLines() {
   ocrLines.value = []
 }
 
+// 查看报告弹窗：主 Tab（检验结果 / 用药记录 / 关联文件）
+const viewMain = ref('items')
 // 查看报告：所有项 / 异常项 切页
 const viewTab = ref('all')
 const viewAbnItems = computed(() => (viewRow.value?.items_detail || []).filter((it) => ['high', 'low', 'abnormal'].includes(it.result)))
@@ -1041,7 +1043,12 @@ async function delAnalysis(a) {
         </div>
         <div class="msub">{{ viewRow?.parent?.category || '' }}{{ viewRow?.parent?.addr ? ' · ' + viewRow.parent.addr : '' }}{{ viewRow?.parent?.checked_at ? ' · ' + viewRow.parent.checked_at.replace('T', ' ').slice(0, 16) : '' }}</div>
         <div class="mbody">
-        <div class="view-cols"><div class="view-left">
+        <div class="view-tabs">
+          <button :class="['vtab', { on: viewMain === 'items' }]" @click="viewMain = 'items'">检验结果</button>
+          <button :class="['vtab', { on: viewMain === 'meds' }]" @click="viewMain = 'meds'">用药记录</button>
+          <button :class="['vtab', { on: viewMain === 'files' }]" @click="viewMain = 'files'">关联文件</button>
+        </div>
+        <div class="view-cols" v-show="viewMain === 'items'"><div class="view-left">
         <div class="fgrid rp-fg">
           <div class="field"><div class="flabel">报告名称</div><span class="flc">：</span><div class="kv">{{ viewRow?.name || '—' }}</div></div>
           <div class="field"><div class="flabel">录入时间</div><span class="flc">：</span><div class="kv">{{ viewRow?.created_at ? viewRow.created_at.replace('T', ' ').slice(0, 16) : '—' }}</div></div>
@@ -1118,39 +1125,46 @@ async function delAnalysis(a) {
           </div>
         </div>
         </div>
-        <!-- 右侧：该检查记录绑定的用药记录（未绑定则不显示） -->
-        <div class="view-side" v-if="viewMedsLoading">
-          <div class="vs-head"><b>关联用药记录</b></div>
-          <div class="t-mut" style="font-size:12.5px;padding:10px 0">加载中…</div>
+        <!-- Tab：用药记录 -->
+        <div class="view-meds" v-show="viewMain === 'meds'">
+          <div v-if="viewMedsLoading" class="t-mut" style="font-size:12.5px;padding:10px 0">加载中…</div>
+          <template v-else-if="viewMeds.length">
+            <div class="vs-head"><b>关联用药记录</b><span class="badge info">{{ viewMeds.length }} 条开方</span></div>
+            <div class="rx-card" v-for="rx in viewMeds" :key="rx.id">
+              <div class="rx-title">{{ rx.org_dept || '未知机构 / 科室' }}</div>
+              <div class="fgrid rx-fg">
+                <div class="field"><div class="flabel">患者</div><div class="kv">{{ rx.patient || '—' }}</div></div>
+                <div class="field"><div class="flabel">医师</div><div class="kv">{{ rx.doctor || '—' }}</div></div>
+                <div class="field"><div class="flabel">开方时间</div><div class="kv">{{ fmtDt(rx.prescribed_at) }}</div></div>
+                <div class="field"><div class="flabel">药品</div><div class="kv">{{ (rx.items || []).length }} 种</div></div>
+              </div>
+              <div class="tbl-wrap rx-tbl">
+                <table class="med-tbl">
+                  <thead><tr>
+                    <th>药品名称</th><th>规格</th><th>频次</th><th>用法</th><th style="width:58px">状态</th>
+                  </tr></thead>
+                  <tbody>
+                    <tr v-for="(it, i) in (rx.items || [])" :key="i">
+                      <td>{{ it.name || '—' }}</td>
+                      <td>{{ it.spec || '—' }}</td>
+                      <td>{{ it.frequency || '—' }}</td>
+                      <td>{{ it.usage || '—' }}</td>
+                      <td><span :class="'badge ' + (it.status === '进行中' ? 'normal' : (it.status === '已停药' ? 'warn' : 'info'))" style="font-size:10.5px;font-weight:600">{{ it.status || '—' }}</span></td>
+                    </tr>
+                    <tr v-if="!(rx.items || []).length"><td colspan="5" class="t-mut" style="text-align:center;padding:14px">无药品明细</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-if="rx.note" class="rx-note">{{ rx.note }}</div>
+            </div>
+          </template>
+          <div v-else class="t-mut" style="font-size:12.5px;padding:14px 0">该检查记录暂无绑定的用药记录</div>
         </div>
-        <div class="view-side" v-else-if="viewMeds.length">
-          <div class="vs-head"><b>关联用药记录</b><span class="badge info">{{ viewMeds.length }} 条开方</span></div>
-          <div class="rx-card" v-for="rx in viewMeds" :key="rx.id">
-            <div class="rx-title">{{ rx.org_dept || '未知机构 / 科室' }}</div>
-            <div class="fgrid rx-fg">
-              <div class="field"><div class="flabel">患者</div><div class="kv">{{ rx.patient || '—' }}</div></div>
-              <div class="field"><div class="flabel">医师</div><div class="kv">{{ rx.doctor || '—' }}</div></div>
-              <div class="field"><div class="flabel">开方时间</div><div class="kv">{{ fmtDt(rx.prescribed_at) }}</div></div>
-              <div class="field"><div class="flabel">药品</div><div class="kv">{{ (rx.items || []).length }} 种</div></div>
-            </div>
-            <div class="tbl-wrap rx-tbl">
-              <table class="med-tbl">
-                <thead><tr>
-                  <th>药品名称</th><th>规格</th><th>频次</th><th>用法</th><th style="width:58px">状态</th>
-                </tr></thead>
-                <tbody>
-                  <tr v-for="(it, i) in (rx.items || [])" :key="i">
-                    <td>{{ it.name || '—' }}</td>
-                    <td>{{ it.spec || '—' }}</td>
-                    <td>{{ it.frequency || '—' }}</td>
-                    <td>{{ it.usage || '—' }}</td>
-                    <td><span :class="'badge ' + (it.status === '进行中' ? 'normal' : (it.status === '已停药' ? 'warn' : 'info'))" style="font-size:10.5px;font-weight:600">{{ it.status || '—' }}</span></td>
-                  </tr>
-                  <tr v-if="!(rx.items || []).length"><td colspan="5" class="t-mut" style="text-align:center;padding:14px">无药品明细</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div v-if="rx.note" class="rx-note">{{ rx.note }}</div>
+        <!-- Tab：关联文件（占位，功能未实施） -->
+        <div class="view-files" v-show="viewMain === 'files'">
+          <div class="vs-head"><b>关联文件</b></div>
+          <div class="t-mut" style="font-size:12.5px;padding:16px 0;border:1px dashed var(--line);border-radius:10px;text-align:center">
+            🔗 关联文件功能即将上线，敬请期待
           </div>
         </div>
         </div>
