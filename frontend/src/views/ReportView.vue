@@ -1338,7 +1338,7 @@ async function delAnalysis(a) {
     <div class="modal-mask" :class="{ show: imgMdl }" @click.self="imgMdl = false">
       <div class="img-viewer">
         <template v-if="imgMdl && imgList.length">
-          <PinchZoom :key="imgIdx" :src="imgUrl" :alt="imgList[imgIdx].name" @close="imgMdl = false" />
+          <PinchZoom :key="imgIdx" :src="imgUrl" :alt="imgList[imgIdx].name" @close="imgMdl = false" @swipe="switchImg" />
           <div class="img-cap" v-if="imgList[imgIdx].name">{{ imgList[imgIdx].name }}</div>
           <div class="img-counter" v-if="imgList.length > 1">{{ imgIdx + 1 }} / {{ imgList.length }}</div>
           <button v-if="imgList.length > 1" class="img-nav prev" @click="switchImg(-1)" title="上一张">‹</button>
