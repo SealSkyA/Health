@@ -345,7 +345,7 @@ html[data-theme="dark"] .login-panel { background: rgba(20, 26, 36, .80); border
 .login-tip { text-align: center; font-size: 12px; color: var(--mut); margin-top: 16px; }
 
 @media (max-width: 899px) {
-  .login-page { justify-content: center; align-items: flex-end; padding: 18px 16px 22px; }
+  .login-page { justify-content: center; align-items: center; padding: 22px 16px; }
   .login-bg { width: 100%; }
   .quote-pc { display: none; }
   .quote-m { display: block; position: static; transform: none;
