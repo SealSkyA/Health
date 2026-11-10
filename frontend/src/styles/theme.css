@@ -621,11 +621,12 @@ html[data-theme="dark"]{--sb:rgba(140,151,172,.42);--sb-hover:rgba(166,176,194,.
   color:#fff;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:7}
 .img-counter{position:absolute;top:12px;right:56px;padding:4px 12px;border-radius:18px;background:rgba(0,0,0,.45);
   color:#fff;font-size:12.5px;z-index:7}
-.img-thumbs{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;max-width:92%;
-  padding:9px 12px;background:rgba(0,0,0,.5);border-radius:13px;overflow-x:auto;z-index:7;scrollbar-width:thin}
-.img-thumbs img{width:54px;height:54px;object-fit:cover;border-radius:8px;cursor:pointer;flex-shrink:0;
-  border:2px solid transparent;opacity:.72;background:#222}
-.img-thumbs img:hover{opacity:.95}
+.img-thumbs{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;max-width:92%;
+  overflow-x:auto;z-index:7;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.img-thumbs::-webkit-scrollbar{display:none}
+.img-thumbs img{width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer;flex-shrink:0;
+  border:2px solid rgba(255,255,255,.35);opacity:.75;background:#222;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.img-thumbs img:hover{opacity:1}
 .img-thumbs img.on{border-color:#fff;opacity:1}
 
 /* 移动端图片查看全屏（置于文件尾部保证优先于上面的 94vw/92vh 基础规则） */

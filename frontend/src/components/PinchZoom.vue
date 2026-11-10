@@ -19,14 +19,26 @@ function apply() {
   if (!el) return
   el.style.transform = `translate(${tx}px, ${ty}px) scale(${curScale})`
 }
+// 拖动/缩放过程中临时关掉 transform 过渡（否则每帧变换都在追动画，感觉发飘不跟手），松手后恢复
+const MOVE_CLS = 'pz-move'
+function startDrag() {
+  const el = img.value
+  if (el && !el.classList.contains(MOVE_CLS)) { el.classList.add(MOVE_CLS); el.style.transition = 'none' }
+}
+function endDrag() {
+  const el = img.value
+  if (el) { el.classList.remove(MOVE_CLS); el.style.transition = '' }
+}
 function dist(ts) { return Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY) }
 
 function onTouchStart(e) {
   if (e.touches.length === 2) {
+    startDrag()
     pinchDist0 = dist(e.touches)
     pinchScale0 = curScale
   } else if (e.touches.length === 1) {
     if (curScale > 1) {
+      startDrag()
       panSX = e.touches[0].clientX; panSY = e.touches[0].clientY
       panTX = tx; panTY = ty
     } else {
@@ -57,8 +69,9 @@ function onTouchMove(e) {
     }
   }
 }
-function onTouchEnd() {
+function onTouchEnd(e) {
   pinchDist0 = 0
+  if (!e.touches || e.touches.length === 0) endDrag()  // 全部手指离开 → 恢复过渡
   if (curScale === 1 && swipeDir) {
     suppressClick = true
     emit('swipe', swipeDir)
@@ -101,5 +114,7 @@ function onClick() {
   overflow:hidden;touch-action:none;cursor:zoom-in}
 .pz img{display:block;max-width:100%;max-height:100%;object-fit:contain;
   transform-origin:center;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;
-  touch-action:none;transition:transform .12s ease-out}
+  touch-action:none;transition:transform .12s ease-out;will-change:transform;
+  translate:0 0;transform:translate3d(0,0,0)}
+.pz img.pz-move{transition:none}
 </style>
