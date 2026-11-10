@@ -177,9 +177,21 @@
       </div>
     </div>
 
-    <!-- 最新报告：点击图片放大查看（双指缩放图片，页面不缩放） -->
-    <div class="img-mask" v-if="imgMdl" @click.self="imgMdl = false">
-      <PinchZoom :src="imgUrl" :alt="imgName" @close="imgMdl = false" />
+    <!-- 最新报告：点击图片放大查看（同一检查记录全部图片串组，左右滑动 / 箭头 / 缩略图切换） -->
+    <div class="modal-mask" :class="{ show: imgMdl }" @click.self="imgMdl = false">
+      <div class="img-viewer" v-if="imgMdl && imgList.length">
+        <PinchZoom :key="imgIdx" :src="imgList[imgIdx].src" :alt="imgList[imgIdx].name" @close="imgMdl = false" @swipe="switchImg" />
+        <div class="img-cap" v-if="imgList[imgIdx].name">{{ imgList[imgIdx].name }}</div>
+        <div class="img-counter" v-if="imgList.length > 1">{{ imgIdx + 1 }} / {{ imgList.length }}</div>
+        <button v-if="imgList.length > 1" class="img-nav prev" @click="switchImg(-1)" title="上一张">‹</button>
+        <button v-if="imgList.length > 1" class="img-nav next" @click="switchImg(1)" title="下一张">›</button>
+        <div class="img-thumbs" v-if="imgList.length > 1">
+          <img v-for="(im, i) in imgList" :key="i" :src="im.src" :class="{ on: i === imgIdx }"
+            :alt="im.name || ('图片 ' + (i + 1))" :title="im.name || ('图片 ' + (i + 1))"
+            @click="imgIdx = i" loading="lazy">
+        </div>
+        <button class="img-close" @click="imgMdl = false"><span style="font-size:15px">✕</span></button>
+      </div>
     </div>
 
     <!-- 首页查看报告弹窗 -->
@@ -283,15 +295,44 @@ const favKey = (f) => (f.kind === 'g' ? 'g' + f.g.doc_id : 'i' + f.it.name)
 const viewDoc = ref(null)
 const viewTab = ref('all')
 const groupMode = ref(false)      // 组合关注开关（仅查看弹窗内）
-// ---- 最新报告：图片放大查看 ----
+// ---- 最新报告：图片放大查看（同一检查记录全部图片串组，左右滑动 / 箭头 / 缩略图切换）----
 const imgMdl = ref(false)
-const imgUrl = ref('')
-const imgName = ref('')
-function viewImg(d) {
+const imgList = ref([])
+const imgIdx = ref(0)
+function collectHomeImgs(docs) {
+  const imgs = []
+  const push = (p, n) => { const s = '/static/' + p; if (p && !imgs.some((i) => i.src === s)) imgs.push({ src: s, name: (n || '').trim() }) }
+  for (const d of docs) {
+    const first = d.cover || d.image
+    if (first) push(first, d.name || '')
+    for (const a of (d.attachments || [])) {
+      if (/\.(png|jpe?g|gif|webp|bmp|svg|avif)$/i.test(a.path || '')) push(a.path, a.name || d.name || '')
+    }
+  }
+  return imgs
+}
+async function viewImg(d) {
   if (!d || !(d.cover || d.image)) return
-  imgUrl.value = '/static/' + (d.cover || d.image)
-  imgName.value = d.name || ''
+  // 先立即显示点击的这张，再异步补拉同检查记录下的全部图片串组
+  const t = '/static/' + (d.cover || d.image)
+  imgList.value = [{ src: t, name: d.name || '' }]
+  imgIdx.value = 0
   imgMdl.value = true
+  if (!d.report_id) return
+  try {
+    const docs = await reportApi.docs(d.report_id)
+    if (!imgMdl.value) return
+    const imgs = collectHomeImgs(docs)
+    if (!imgs.length) return
+    imgList.value = imgs
+    const i = imgs.findIndex((x) => x.src === t)
+    imgIdx.value = i >= 0 ? i : 0
+  } catch (e) { /* 补拉失败保持单图 */ }
+}
+function switchImg(dir) {
+  const n = imgList.value.length
+  if (n < 2) return
+  imgIdx.value = (imgIdx.value + dir + n) % n
 }
 const trendMdl = ref(false)
 const trendName = ref('')
@@ -579,10 +620,6 @@ onUnmounted(() => {
 .lp-stat { font-size: 12.5px; color: var(--fg) }
 .lp-ops { margin-top: auto; padding-top: 10px; display: flex; justify-content: flex-end }
 .lp-empty { grid-column: 1 / -1; text-align: center; color: var(--mut); font-size: 13px; padding: 30px 10px }
-.img-mask { position: fixed; inset: 0; background: rgba(15, 23, 42, .74); z-index: 90;
-  display: flex; align-items: center; justify-content: center; padding: 20px; cursor: zoom-out }
-.img-mask img { max-width: 100%; max-height: 100%; object-fit: contain;
-  border: 1px solid rgba(255, 255, 255, .28); border-radius: 6px; box-shadow: 0 18px 50px rgba(0, 0, 0, .4) }
 
 /* ── 移动端：关注卡改轮播（横向滑动切换）；最新报告保持一行两张 ── */
 @media (max-width: 560px) {
