@@ -608,8 +608,25 @@ html[data-theme="dark"]{--sb:rgba(140,151,172,.42);--sb-hover:rgba(166,176,194,.
 @media (max-width:820px){.view-cols{flex-direction:column}.view-cols .view-side{width:100%;border-left:0;padding-left:0;max-height:none;border-top:1px solid var(--line);padding-top:12px;margin-top:4px}}
 .img-viewer{max-width:94vw;max-height:92vh;position:relative;display:flex;align-items:center;justify-content:center}
 .img-viewer img{max-width:94vw;max-height:92vh;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.45)}
-.img-close{position:absolute;top:10px;right:10px;width:34px;height:34px;border:0;border-radius:10px;background:rgba(0,0,0,.5);color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.img-close{position:absolute;top:10px;right:10px;width:34px;height:34px;border:0;border-radius:10px;background:rgba(0,0,0,.5);color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:8}
 .img-close:hover{background:rgba(0,0,0,.72)}
+/* 大图查看器：左右切换箭头 / 图片计数 / 图片名 / 底部缩略图条 */
+.img-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;border-radius:12px;
+  background:rgba(0,0,0,.45);color:#fff;font-size:28px;line-height:1;cursor:pointer;z-index:7;
+  display:flex;align-items:center;justify-content:center}
+.img-nav:hover{background:rgba(0,0,0,.7)}
+.img-nav.prev{left:12px}
+.img-nav.next{right:12px}
+.img-cap{position:absolute;top:12px;left:14px;max-width:58%;padding:4px 12px;border-radius:18px;background:rgba(0,0,0,.45);
+  color:#fff;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:7}
+.img-counter{position:absolute;top:12px;right:56px;padding:4px 12px;border-radius:18px;background:rgba(0,0,0,.45);
+  color:#fff;font-size:12.5px;z-index:7}
+.img-thumbs{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;max-width:92%;
+  padding:9px 12px;background:rgba(0,0,0,.5);border-radius:13px;overflow-x:auto;z-index:7;scrollbar-width:thin}
+.img-thumbs img{width:54px;height:54px;object-fit:cover;border-radius:8px;cursor:pointer;flex-shrink:0;
+  border:2px solid transparent;opacity:.72;background:#222}
+.img-thumbs img:hover{opacity:.95}
+.img-thumbs img.on{border-color:#fff;opacity:1}
 
 /* 移动端图片查看全屏（置于文件尾部保证优先于上面的 94vw/92vh 基础规则） */
 @media(max-width:560px){

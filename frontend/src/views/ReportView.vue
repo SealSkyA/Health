@@ -119,6 +119,9 @@ const pendingImgUrl = ref('')
 const editingImage = ref('')
 const imgMdl = ref(false)
 const imgUrl = ref('')
+// 大图查看：同一检查记录下的全部图片（多份报告的封面图 + 附件图片）串成一组，支持左右切换 / 缩略图跳转
+const imgList = ref([])
+const imgIdx = ref(0)
 // 报告附件：待上传本地清单 / 已保存附件（在线清单）
 const pendingAtts = ref([]) // { file, name, size }
 const savedAtts = ref([])   // { name, path, size, mime }
@@ -207,11 +210,51 @@ function removePendingImg() {
   pendingImgUrl.value = ''
 }
 
+// 收集同一检查记录下的全部图片：该记录下每份报告的封面图 + 附件图片（仅图片类附件）
+function collectReportImages(doc) {
+  if (typeof doc === 'string') return [{ src: doc, name: '' }]
+  const imgs = []
+  const push = (p, n) => {
+    const s = '/static/' + p
+    if (!imgs.some((i) => i.src === s)) imgs.push({ src: s, name: (n || '').trim() })
+  }
+  let r = doc?.parent
+  if (!r && doc?.rid) r = rows.value.find((x) => x.id === doc.rid)
+  if (r) {
+    for (const d of docsOf(r)) {
+      const first = d.cover || d.image
+      if (first) push(first, d.name)
+      for (const a of (d.attachments || [])) {
+        if (/\.(png|jpe?g|gif|webp|bmp|svg|avif)$/i.test(a.path || '')) push(a.path, a.name || d.name)
+      }
+    }
+  } else {
+    const s0 = doc?.cover || doc?.image
+    if (s0) push(s0, doc.name)
+  }
+  return imgs
+}
+
 function viewImg(doc) {
-  const src = typeof doc === 'string' ? doc : ((doc?.cover || doc?.image) ? '/static/' + (doc.cover || doc.image) : '')
-  if (!src) return
-  imgUrl.value = src
+  const imgs = collectReportImages(doc)
+  if (!imgs.length) return
+  imgList.value = imgs
+  let idx = 0
+  if (typeof doc !== 'string') {
+    const t = '/static/' + (doc.cover || doc.image)
+    const i = imgs.findIndex((x) => x.src === t)
+    if (i >= 0) idx = i
+  }
+  imgIdx.value = idx
+  imgUrl.value = imgs[idx].src
   imgMdl.value = true
+}
+
+function switchImg(d) {
+  const n = imgList.value.length
+  if (n < 2) return
+  imgIdx.value = (imgIdx.value + d + n) % n
+  imgUrl.value = imgList.value[imgIdx.value].src
 }
 
 // 按坐标把 OCR 散行重组回表格：找表头定位四列，按 y 聚类成数据行，
@@ -1291,10 +1334,21 @@ async function delAnalysis(a) {
       </div>
     </div>
 
-    <!-- 附件大图查看 -->
+    <!-- 附件大图查看：同一检查记录全部图片串组，左右切换 + 底部缩略图 -->
     <div class="modal-mask" :class="{ show: imgMdl }" @click.self="imgMdl = false">
       <div class="img-viewer">
-        <PinchZoom v-if="imgMdl" :src="imgUrl" @close="imgMdl = false" />
+        <template v-if="imgMdl && imgList.length">
+          <PinchZoom :key="imgIdx" :src="imgUrl" :alt="imgList[imgIdx].name" @close="imgMdl = false" />
+          <div class="img-cap" v-if="imgList[imgIdx].name">{{ imgList[imgIdx].name }}</div>
+          <div class="img-counter" v-if="imgList.length > 1">{{ imgIdx + 1 }} / {{ imgList.length }}</div>
+          <button v-if="imgList.length > 1" class="img-nav prev" @click="switchImg(-1)" title="上一张">‹</button>
+          <button v-if="imgList.length > 1" class="img-nav next" @click="switchImg(1)" title="下一张">›</button>
+          <div class="img-thumbs" v-if="imgList.length > 1">
+            <img v-for="(im, i) in imgList" :key="i" :src="im.src" :class="{ on: i === imgIdx }"
+              :alt="im.name || ('图片 ' + (i + 1))" :title="im.name || ('图片 ' + (i + 1))"
+              @click="imgIdx = i; imgUrl = imgList[i].src" loading="lazy">
+          </div>
+        </template>
         <button class="img-close" @click="imgMdl = false"><span style="font-size:15px">✕</span></button>
       </div>
     </div>
