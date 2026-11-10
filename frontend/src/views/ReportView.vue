@@ -211,17 +211,20 @@ function removePendingImg() {
 }
 
 // 收集同一检查记录下的全部图片：该记录下每份报告的封面图 + 附件图片（仅图片类附件）
-function collectReportImages(doc) {
+function collectReportImages(doc, r) {
   if (typeof doc === 'string') return [{ src: doc, name: '' }]
   const imgs = []
   const push = (p, n) => {
     const s = '/static/' + p
     if (!imgs.some((i) => i.src === s)) imgs.push({ src: s, name: (n || '').trim() })
   }
-  let r = doc?.parent
-  if (!r && doc?.rid) r = rows.value.find((x) => x.id === doc.rid)
-  if (r) {
-    for (const d of docsOf(r)) {
+  let rec = r || doc?.parent
+  if (!rec) {
+    const rid = doc?.rid || doc?.report_id
+    if (rid) rec = rows.value.find((x) => x.id === rid)
+  }
+  if (rec) {
+    for (const d of docsOf(rec)) {
       const first = d.cover || d.image
       if (first) push(first, d.name)
       for (const a of (d.attachments || [])) {
@@ -235,8 +238,8 @@ function collectReportImages(doc) {
   return imgs
 }
 
-function viewImg(doc) {
-  const imgs = collectReportImages(doc)
+function viewImg(doc, r) {
+  const imgs = collectReportImages(doc, r)
   if (!imgs.length) return
   imgList.value = imgs
   let idx = 0
@@ -812,7 +815,7 @@ async function delAnalysis(a) {
             <div class="rp-slides" :ref="(el) => setSlidesRef(r.id, el)" @scroll="onSwipe(r, $event)">
               <div class="rp-slide" v-for="(d, di) in docsOf(r)" :key="d.id">
                 <div class="rp-imgbox">
-                  <img v-if="d.cover" :src="'/static/' + d.cover" @click="viewImg(d)" loading="lazy" :alt="d.name">
+                  <img v-if="d.cover" :src="'/static/' + d.cover" @click="viewImg(d, r)" loading="lazy" :alt="d.name">
                   <div v-else class="rp-noimg" @click="openViewDoc(r, d)">无附件图</div>
                 </div>
                 <div class="rp-name" @click="openViewDoc(r, d)">{{ d.name || '未命名报告' }}</div>
