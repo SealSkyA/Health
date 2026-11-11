@@ -6,16 +6,38 @@
         <RouterLink to="/med" class="hm-more">用药记录 ›</RouterLink>
       </div>
       <template v-if="lastMed">
-        <div class="hm-med-meta">
-          <span class="hm-p">患者：{{ lastMed.patient }}</span>
-          <span class="hm-time">{{ fmtMedDt(lastMed.prescribed_at) }}</span>
-          <span class="hm-cnt">{{ lastMed.items.length }} 种药</span>
+        <div class="fgrid hm-grid">
+          <div class="field"><div class="flabel">患者</div><div class="kv">{{ lastMed.patient || '—' }}</div></div>
+          <div class="field"><div class="flabel">开方机构 / 科室</div><div class="kv">{{ lastMed.org_dept || '—' }}</div></div>
+          <div class="field"><div class="flabel">开方医师</div><div class="kv">{{ lastMed.doctor || '—' }}</div></div>
+          <div class="field"><div class="flabel">开方时间</div><div class="kv">{{ fmtMedDt(lastMed.prescribed_at) }}</div></div>
+          <div class="field"><div class="flabel">关联检查时间</div><div class="kv">{{ fmtMedDt(lastMed.check_time) }}</div></div>
+          <div class="field"><div class="flabel">用药开始时间</div><div class="kv">{{ lastMed.start_date || '—' }}</div></div>
+          <div class="field"><div class="flabel">用药结束时间</div><div class="kv">{{ lastMed.end_date || '—' }}</div></div>
+          <div class="field full"><div class="flabel">开方备注</div><div class="kv">{{ lastMed.note || '—' }}</div></div>
         </div>
-        <div class="hm-med-items">
-          <template v-for="it in lastMed.items" :key="it.id">
-            <span v-if="it.name" class="hm-dtag"
-              :title="[it.frequency, it.usage].filter(Boolean).join(' · ')">{{ it.name }}</span>
-          </template>
+        <div class="hm-tbl-t">药品明细（{{ (lastMed.items || []).length }} 种）</div>
+        <div class="tbl-wrap">
+          <table class="med-tbl">
+            <thead><tr>
+              <th style="width:30px">#</th><th>药品名称</th><th>规格 / 剂量</th><th>用药频次</th><th>用法</th>
+              <th>开始日期</th><th>结束日期</th><th>状态</th><th>备注</th>
+            </tr></thead>
+            <tbody>
+              <tr v-for="(it, i) in (lastMed.items || [])" :key="it.id ?? i">
+                <td class="t-mut">{{ i + 1 }}</td>
+                <td>{{ it.name || '—' }}</td>
+                <td>{{ it.spec || '—' }}</td>
+                <td>{{ it.frequency || '—' }}</td>
+                <td>{{ it.usage || '—' }}</td>
+                <td>{{ it.start_date || '—' }}</td>
+                <td>{{ it.end_date || '—' }}</td>
+                <td>{{ it.status || '—' }}</td>
+                <td class="t-mut">{{ it.note || '—' }}</td>
+              </tr>
+              <tr v-if="!(lastMed.items || []).length"><td colspan="9" class="t-mut" style="text-align:center;padding:20px">无药品明细</td></tr>
+            </tbody>
+          </table>
         </div>
       </template>
       <div v-else class="hm-empty">暂无用药记录</div>
@@ -562,14 +584,11 @@ watchBack(() => askMdl.value, () => { askMdl.value = false })
 <style scoped>
 /* 顶部：最新一次用药记录卡片 */
 .hm-med { padding: 14px 16px; margin-bottom: 18px; }
-.hm-med-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.hm-med-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
 .hm-med-t { font-size: 15px; font-weight: 700; margin: 0; }
 .hm-more { font-size: 12px; color: var(--acc); text-decoration: none; flex: none; }
-.hm-med-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--mut); margin-bottom: 9px; }
-.hm-p { color: var(--fg); font-weight: 600; }
-.hm-cnt { background: var(--acc-soft); color: var(--acc); border-radius: 6px; padding: 1px 8px; font-weight: 600; }
-.hm-med-items { display: flex; flex-wrap: wrap; gap: 6px; }
-.hm-dtag { background: var(--card2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; font-size: 12px; color: var(--fg); }
+.hm-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.hm-tbl-t { margin: 10px 0 8px; font-size: 13px; font-weight: 700; }
 .hm-empty { color: var(--mut); font-size: 12.5px; text-align: center; padding: 6px 0; }
 .ti-title {
   display: inline-flex; align-items: center; gap: 8px;
