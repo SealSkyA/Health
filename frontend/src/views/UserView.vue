@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { userApi, roleApi } from '../api'
+import { watchBack } from '../utils/backstack'
 
 const rows = ref([])
 const query = ref('')
@@ -97,6 +98,8 @@ function roleLbl(r) {
 }
 
 onMounted(() => { load(); loadRoles() })
+// 系统返回键逐级返回：弹层进入返回栈
+watchBack(() => mdl.value, () => { mdl.value = false })
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { watchBack } from '../utils/backstack'
 
 const props = defineProps({
   modelValue: { default: null },
@@ -42,6 +43,8 @@ function onDocClick(e) {
 
 onMounted(() => document.addEventListener('click', onDocClick))
 onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
+// 系统返回键逐级返回：下拉进入返回栈
+watchBack(() => open.value, () => { open.value = false })
 </script>
 
 <template>

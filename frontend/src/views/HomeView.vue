@@ -276,6 +276,7 @@ import { ref, reactive, computed, onMounted, watch, nextTick, onUnmounted } from
 import { reportApi, medApi, fileApi, tplApi } from '../api'
 import TrendChart from '../components/TrendChart.vue'
 import PinchZoom from '../components/PinchZoom.vue'
+import { watchBack } from '../utils/backstack'
 
 const kpi = reactive({ report: 0, med: 0, files: 0, tpl: 0 })
 const latestDocs = ref([])  // 最新报告列表（按检查日期倒序）
@@ -530,6 +531,11 @@ onUnmounted(() => {
   lpStops.forEach((f) => { try { f() } catch (e) {} })
   lpStops = []
 })
+// 系统返回键逐级返回：弹层进入返回栈，按返回先关弹层，再回退页面
+watchBack(() => imgMdl.value, () => { imgMdl.value = false })
+watchBack(() => !!viewDoc.value, () => closeDocView())
+watchBack(() => trendMdl.value, () => { trendMdl.value = false })
+watchBack(() => askMdl.value, () => { askMdl.value = false })
 </script>
 
 <style scoped>

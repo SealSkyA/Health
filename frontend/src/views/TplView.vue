@@ -4,6 +4,7 @@ import { tplApi, reportApi } from '../api'
 import { hasPerm } from '../utils/perm'
 import { fileToDataUrl } from '../utils/file'
 import MobilePager from '../components/MobilePager.vue'
+import { watchBack } from '../utils/backstack'
 
 const canWrite = hasPerm('op.tpl.write')
 const rows = ref([])
@@ -236,6 +237,9 @@ onMounted(async () => {
   await load()
   try { const c = await tplApi.count(); total.value = c.total || 0 } catch (e) {}
 })
+// 系统返回键逐级返回：弹层进入返回栈
+watchBack(() => showMdl.value, () => { showMdl.value = false })
+watchBack(() => viewMdl.value, () => { viewMdl.value = false })
 </script>
 
 <template>

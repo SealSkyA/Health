@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { medApi, reportApi } from '../api'
 import { hasPerm } from '../utils/perm'
 import MobilePager from '../components/MobilePager.vue'
+import { watchBack } from '../utils/backstack'
 
 const canWrite = hasPerm('op.med.write')
 const rows = ref([])
@@ -237,6 +238,9 @@ onMounted(async () => {
   await load()
   try { const c = await medApi.count(); total.value = c.total || 0 } catch (e) {}
 })
+// 系统返回键逐级返回：弹层进入返回栈
+watchBack(() => viewMdl.value, () => { viewMdl.value = false })
+watchBack(() => showMdl.value, () => { showMdl.value = false })
 </script>
 
 <template>

@@ -6,6 +6,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { aiApi, aiApi2, reportApi } from '../api'
 import { fileToDataUrl } from '../utils/file'
+import { watchBack } from '../utils/backstack'
 
 const router = useRouter()
 const open = ref(false)
@@ -1165,6 +1166,12 @@ watch(open, (v) => {
 watch(sideOpen, (v) => {
   if (v) { skillOpen.value = false; thinkOpen.value = false }
 })
+// 系统返回键逐级返回：AI 面板 / 抽屉 / 菜单 / 弹窗进入返回栈
+watchBack(() => open.value, () => { open.value = false })
+watchBack(() => sideOpen.value, () => { sideOpen.value = false })
+watchBack(() => !!menuFor.value, () => { menuFor.value = null })
+watchBack(() => !!dlg.value, () => { dlg.value = null })
+watchBack(() => !!cdlg.value, () => { cdlg.value = null })
 </script>
 
 <template>

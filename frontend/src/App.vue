@@ -9,6 +9,7 @@ const route = useRoute()
 import { loadPerms, hasPerm, permState } from './utils/perm'
 import { userState, loadUser, clearUser, avatarUrl, applyUserFromApi } from './utils/user'
 import { authApi } from './api'
+import { watchBack } from './utils/backstack'
 const collapsed = ref(localStorage.getItem('sb') === '1')
 function toggleSidebar() {
   collapsed.value = !collapsed.value
@@ -141,6 +142,9 @@ onMounted(() => {
     { passive: false }
   )
 })
+// 系统返回键逐级返回：顶栏下拉进入返回栈
+watchBack(() => tdrop.value, () => { tdrop.value = false })
+watchBack(() => udrop.value, () => { udrop.value = false })
 </script>
 
 <template>

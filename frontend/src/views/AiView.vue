@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { aiApi } from '../api'
 import { hasPerm } from '../utils/perm'
+import { watchBack } from '../utils/backstack'
 
 const canWrite = hasPerm('op.ai.write')
 const rows = ref([])
@@ -296,6 +297,10 @@ onMounted(async () => {
   await load()
   try { const c = await aiApi.count(); total.value = c.total || 0 } catch (e) {}
 })
+// 系统返回键逐级返回：弹层进入返回栈
+watchBack(() => showMdl.value, () => { showMdl.value = false })
+watchBack(() => fetchMdl.value, () => { fetchMdl.value = false })
+watchBack(() => detailMdl.value, () => { detailMdl.value = false })
 </script>
 
 <template>

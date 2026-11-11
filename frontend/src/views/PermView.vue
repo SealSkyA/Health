@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { roleApi } from '../api'
+import { watchBack } from '../utils/backstack'
 
 const roles = ref([])
 const permDefs = ref([])       // PERM_GROUPS: [{group, items:[{key,label}]}]
@@ -107,6 +108,8 @@ async function del(r) {
 }
 
 onMounted(() => { load(); loadDefs() })
+// 系统返回键逐级返回：弹层进入返回栈
+watchBack(() => mdl.value, () => { mdl.value = false })
 </script>
 
 <template>

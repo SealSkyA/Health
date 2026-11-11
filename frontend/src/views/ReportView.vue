@@ -8,6 +8,7 @@ import NameCombo from '../components/NameCombo.vue'
 import TrendChart from '../components/TrendChart.vue'
 import PinchZoom from '../components/PinchZoom.vue'
 import MobilePager from '../components/MobilePager.vue'
+import { watchBack } from '../utils/backstack'
 
 const md = mdToHtml  // 模板内暴露：AI 分析结果按 Markdown 渲染
 
@@ -775,6 +776,13 @@ async function delAnalysis(a) {
   catch (e) { toast('删除失败') }
 }
 
+// 系统返回键逐级返回：弹层进入返回栈，按返回先关弹层，再回退页面
+watchBack(() => showMdl.value, () => { showMdl.value = false })
+watchBack(() => docMdl.value, () => { docMdl.value = false })
+watchBack(() => viewMdl.value, () => { viewMdl.value = false })
+watchBack(() => trendMdl.value, () => { trendMdl.value = false })
+watchBack(() => aiMdl.value, () => { aiMdl.value = false })
+watchBack(() => imgMdl.value, () => { imgMdl.value = false })
 </script>
 
 <template>
