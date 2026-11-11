@@ -1,10 +1,24 @@
 <template>
   <section class="page">
-    <div class="kpis">
-      <div class="kpi blue"><div class="k">我的检查记录</div><div class="v">{{ kpi.report }}</div><div class="d">仅统计当前账号可见</div></div>
-      <div class="kpi green"><div class="k">用药记录</div><div class="v">{{ kpi.med }}</div><div class="d">仅统计当前账号可见</div></div>
-      <div class="kpi amber"><div class="k">文件存储</div><div class="v">{{ kpi.files }}</div><div class="d">仅统计当前账号可见</div></div>
-      <div class="kpi red"><div class="k">报告模板</div><div class="v">{{ kpi.tpl }}</div><div class="d">系统公共模板库</div></div>
+    <div class="card hm-med">
+      <div class="hm-med-hd">
+        <h3 class="hm-med-t">最新用药记录</h3>
+        <RouterLink to="/med" class="hm-more">用药记录 ›</RouterLink>
+      </div>
+      <template v-if="lastMed">
+        <div class="hm-med-meta">
+          <span class="hm-p">患者：{{ lastMed.patient }}</span>
+          <span class="hm-time">{{ fmtMedDt(lastMed.prescribed_at) }}</span>
+          <span class="hm-cnt">{{ lastMed.items.length }} 种药</span>
+        </div>
+        <div class="hm-med-items">
+          <template v-for="it in lastMed.items" :key="it.id">
+            <span v-if="it.name" class="hm-dtag"
+              :title="[it.frequency, it.usage].filter(Boolean).join(' · ')">{{ it.name }}</span>
+          </template>
+        </div>
+      </template>
+      <div v-else class="hm-empty">暂无用药记录</div>
     </div>
 
     <template v-if="interests.length || groups.length">
@@ -272,13 +286,22 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
-import { reportApi, medApi, fileApi, tplApi } from '../api'
+import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
+import { reportApi, medApi } from '../api'
 import TrendChart from '../components/TrendChart.vue'
 import PinchZoom from '../components/PinchZoom.vue'
 import { watchBack } from '../utils/backstack'
 
-const kpi = reactive({ report: 0, med: 0, files: 0, tpl: 0 })
+// 首页顶部：最新一次用药记录（最后一条处方）
+const lastMed = ref(null)
+function fmtMedDt(v) {
+  if (!v) return '—'
+  const t = String(v).includes('T') ? v : String(v).replace(' ', 'T')
+  const d = new Date(t)
+  if (isNaN(d.getTime())) return String(v).slice(0, 10)
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
 const latestDocs = ref([])  // 最新报告列表（按检查日期倒序）
 const interests = ref([])   // 单独关注 [{ name, unit, points, latest_*, scope, loading }]
 const groups = ref([])      // 组合关注 [{ doc_id, doc_name, series, scope, loading }]
@@ -470,12 +493,10 @@ function ungroupAll(g) {
 }
 
 onMounted(async () => {
-  await Promise.allSettled([
-    reportApi.count().then((c) => (kpi.report = c.total || 0)).catch(() => {}),
-    medApi.count().then((c) => (kpi.med = c.total || 0)).catch(() => {}),
-    fileApi.count().then((c) => (kpi.files = c.total || 0)).catch(() => {}),
-    tplApi.count().then((c) => (kpi.tpl = c.total || 0)).catch(() => {}),
-  ])
+  try {
+    const medList = await medApi.list({ limit: 1 }) // 后端按开方时间倒序，第一条即最新
+    lastMed.value = (medList && medList[0]) || null
+  } catch (e) { lastMed.value = null }
   try { latestDocs.value = await reportApi.latestDocs(10) } catch (e) { latestDocs.value = [] }
   await refreshInterests()
   loading.value = false
@@ -539,6 +560,17 @@ watchBack(() => askMdl.value, () => { askMdl.value = false })
 </script>
 
 <style scoped>
+/* 顶部：最新一次用药记录卡片 */
+.hm-med { padding: 14px 16px; margin-bottom: 18px; }
+.hm-med-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.hm-med-t { font-size: 15px; font-weight: 700; margin: 0; }
+.hm-more { font-size: 12px; color: var(--acc); text-decoration: none; flex: none; }
+.hm-med-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--mut); margin-bottom: 9px; }
+.hm-p { color: var(--fg); font-weight: 600; }
+.hm-cnt { background: var(--acc-soft); color: var(--acc); border-radius: 6px; padding: 1px 8px; font-weight: 600; }
+.hm-med-items { display: flex; flex-wrap: wrap; gap: 6px; }
+.hm-dtag { background: var(--card2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; font-size: 12px; color: var(--fg); }
+.hm-empty { color: var(--mut); font-size: 12.5px; text-align: center; padding: 6px 0; }
 .ti-title {
   display: inline-flex; align-items: center; gap: 8px;
   background: transparent; border: 0; padding: 0; cursor: pointer; color: inherit;
