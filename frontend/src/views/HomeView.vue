@@ -587,7 +587,7 @@ watchBack(() => askMdl.value, () => { askMdl.value = false })
 .hm-med-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
 .hm-med-t { font-size: 15px; font-weight: 700; margin: 0; }
 .hm-more { font-size: 12px; color: var(--acc); text-decoration: none; flex: none; }
-.hm-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.hm-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); } /* 窄屏自动单列，避免手机端挤压 */
 .hm-tbl-t { margin: 10px 0 8px; font-size: 13px; font-weight: 700; }
 .hm-empty { color: var(--mut); font-size: 12.5px; text-align: center; padding: 6px 0; }
 .ti-title {
